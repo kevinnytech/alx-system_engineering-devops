@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 0x0B. SSH 
 
 ## Resource
@@ -47,3 +48,6 @@
 <pre>sudo puppet module install puppetlabs-stdlib</pre>
 </details>
 
+=======
+0x0B-ssh
+>>>>>>> d6112189e639667afa4a6fb790d454432b53d443

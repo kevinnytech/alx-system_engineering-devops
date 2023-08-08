@@ -32,3 +32,4 @@ def count_words(subreddit, word_list, after="", counter={}, ini=0):
                     print('{}: {}'.format(name, num))
     except Exception:
         return None
+

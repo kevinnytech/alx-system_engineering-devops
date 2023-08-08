@@ -1,36 +1,51 @@
 #!/usr/bin/python3
-"""A file to make a query to an endpoint"""
-from requests import request
+"""
+    Prints sorted count of given keywords
+"""
+import requests
 
 
-def count_words(subreddit, word_list, after="", counter={}, ini=0):
-    """A recursive function that queries the Reddit API, parses the title
-    of all hot articles, and prints a sorted count of given keywords
-    (case-insensitive, delimited by spaces. Javascript should count as
-    javascript, but java should not)
+def count_words(subreddit, word_list, counts={}, after=""):
     """
-    if ini == 0:
-        for word in word_list:
-            counter[word] = 0
-
-    url = "https://api.reddit.com/r/{}/hot?after={}".format(subreddit, after)
-    headers = {"User-Agent": "Python3"}
-    response = request("GET", url, headers=headers).json()
-    try:
-        top = response['data']['children']
-        _after = response['data']['after']
-        for item in top:
-            for word in counter:
-                counter[word] += item['data']['title'].lower(
-                    ).split(' ').count(word.lower())
-        if _after is not None:
-            count_words(subreddit, word_list, _after, counter, 1)
+        Recursive function to query Reddit API for given subreddit
+        Prints sorted count of given keywords
+    """
+    url = "https://api.reddit.com/r/{}?sort=hot".format(subreddit)
+    if after:
+        url = "{}&after={}".format(url, after)
+    headers = {'User-Agent': 'CustomClient/1.0'}
+    r = requests.get(url, headers=headers, allow_redirects=False)
+    if r.status_code != 200:
+        print_counts(counts)
+        return
+    r = r.json()
+    if 'data' in r:
+        data = r.get('data')
+        if not data.get('children'):
+            return hot_list
+        for post in data.get('children'):
+            for word in post.get('data').get('title').lower().split():
+                if word in word_list:
+                    if word in counts:
+                        counts[word] += 1
+                    else:
+                        counts[word] = 1
+        if not data.get('after'):
+            print_counts(counts)
         else:
-            str = sorted(counter.items(), key=lambda kv: kv[1], reverse=True)
-            for name, num in str:
-                if num != 0:
-                    print('{}: {}'.format(name, num))
-    except Exception:
-        return None
+            count_words(subreddit, word_list, counts, data.get('after'))
+    else:
+        print_counts(counts)
 
 
+def print_counts(counts):
+    """
+        Sort and print values in counts
+    """
+    if not counts:
+        return
+    rev_counts = {}
+    for key, value in counts.items():
+        rev_counts[value] = key
+    for key in sorted(rev_counts, reverse=True):
+        print("{}: {:d}".format(rev_counts[key], key))

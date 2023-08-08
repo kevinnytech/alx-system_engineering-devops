@@ -1,21 +1,45 @@
-        A list of hot posts titles or None if the subreddit is invalid.
-        """
-    global after
-    headers = {'User-Agent': 'BikcyKet'}
+#!/usr/bin/python3
+"""
+Function that queries the Reddit API and prints
+the top ten hot posts of a subreddit
+"""
+import requests
+import sys
+
+
+def add_title(hot_list, hot_posts):
+    """ Adds item into a list """
+    if len(hot_posts) == 0:
+        return
+    hot_list.append(hot_posts[0]['data']['title'])
+    hot_posts.pop(0)
+    add_title(hot_list, hot_posts)
+
+
+def recurse(subreddit, hot_list=[], after=None):
+    """ Queries to Reddit API """
+    u_agent = 'Mozilla/5.0'
+    headers = {
+        'User-Agent': u_agent
+    }
+
+    params = {
+        'after': after
+    }
+
     url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-    parameters = {'after': after}
-    response = requests.get(url, params=parameters, headers=headers,
-                            allow_redirects=False)
+    res = requests.get(url,
+                       headers=headers,
+                       params=params,
+                       allow_redirects=False)
 
-    if response.status_code == 200:
-        next_ = response.json().get('data').get('after')
-        if next_ is not None:
-            after = next_
-            recurse(subreddit, hot_list)
-        list_titles = response.json().get('data').get('children')
-        for title_ in list_titles:
-            hot_list.append(title_.get('data').get('title'))
+    if res.status_code != 200:
+        return None
+
+    dic = res.json()
+    hot_posts = dic['data']['children']
+    add_title(hot_list, hot_posts)
+    after = dic['data']['after']
+    if not after:
         return hot_list
-    else:
-        return (None)
-
+    return recurse(subreddit, hot_list=hot_list, after=after)

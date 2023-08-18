@@ -1,14 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Get the PID of Gunicorn master process
-PID=$(pgrep -f 'gunicorn --bind')
+# Get Gunicorn process IDs
+MASTER_PID=$(pgrep -f "gunicorn.*:app")
 
-if [ -z "$PID" ]
-then
-  echo "Gunicorn is not running."
-else
-  # Send the HUP signal to Gunicorn
-  kill -HUP $PID
-  echo "Gunicorn has been gracefully reloaded."
-fi
+kill -HUP $MASTER_PID
 
+while pgrep -f "gunicorn.*:app" | grep -q -E "$MASTER_PID|$"; do
+    sleep 1
+done

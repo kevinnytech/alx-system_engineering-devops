@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
-# Reset all workers of gunicorn server
-sudo pkill -HUP gunicorn
+# Gracefully reloads Gunicorn.
+
+ps aux | grep gunicorn | awk '{ print $2 }' | xargs kill -HUP

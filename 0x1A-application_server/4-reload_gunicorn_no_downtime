@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Reset all workers of gunicorn server
+sudo pkill -HUP gunicorn
